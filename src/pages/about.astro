@@ -1,14 +1,19 @@
 ---
-import Page from '../layouts/Page.astro';
+// /about se retiró: la descripción de la revista vive en /nosotros.
+// Redirección standalone (sin layout) a esa página.
+const target = new URL('/nosotros', Astro.site).href;
 ---
 
-<Page title="acerca de" description="Acerca de abulia terminal">
-	<p>
-		<em>Texto provisional — reemplázalo por la descripción de la revista.</em>
-	</p>
-	<p>
-		Abulia Terminal es una revista literaria dedicada al ensayo, la crítica y la
-		creación. Reúne textos que piensan la literatura sin prisa: reseñas que
-		discuten, ensayos que argumentan y escrituras que arriesgan.
-	</p>
-</Page>
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<title>Redirigiendo… · abulia terminal</title>
+		<meta name="robots" content="noindex, follow" />
+		<link rel="canonical" href={target} />
+		<meta http-equiv="refresh" content="0; url=/nosotros" />
+	</head>
+	<body>
+		<p>Esta página se movió. <a href="/nosotros">Conoce abulia terminal en Nosotros</a>.</p>
+	</body>
+</html>

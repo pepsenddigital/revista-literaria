@@ -67,6 +67,102 @@ const buildStoryCard = (url: string, t: string, meta: string): string => {
 
 const storyMeta = [item.data.type || 'Novedad', item.data.author || item.data.location].filter(Boolean).join(' · ');
 const storyCard = item.data.heroImage ? buildStoryCard(item.data.heroImage, item.data.title, storyMeta) : null;
+
+// Imagen social absoluta: heroImage es un string (ruta o URL). Se pasa a
+// BaseHead por la prop ogImage, que resuelve strings; la prop image espera
+// un ImageMetadata y terminaba generando og:image con "/undefined".
+const ogImageAbs = item.data.heroImage
+	? item.data.heroImage.startsWith('http')
+		? item.data.heroImage
+		: new URL(item.data.heroImage, Astro.site).href
+	: undefined;
+
+// Datos estructurados: NewsArticle para toda novedad (mismo patrón que
+// BlogPost.astro usa para los artículos).
+const jsonLdNews = {
+	'@context': 'https://schema.org',
+	'@type': 'NewsArticle',
+	headline: item.data.title,
+	description: item.data.summary || item.data.title,
+	datePublished: item.data.date.toISOString(),
+	dateModified: item.data.date.toISOString(),
+	inLanguage: 'es',
+	mainEntityOfPage: { '@type': 'WebPage', '@id': shareUrl },
+	publisher: {
+		'@type': 'Organization',
+		name: 'abulia terminal',
+		url: 'https://abuliaterminal.cl/',
+		logo: {
+			'@type': 'ImageObject',
+			url: 'https://abuliaterminal.cl/og-default.png',
+		},
+	},
+	isPartOf: {
+		'@type': 'Periodical',
+		name: 'abulia terminal',
+		issn: '3087-3258',
+		url: 'https://abuliaterminal.cl/',
+	},
+	...(item.data.author
+		? { author: { '@type': 'Person', name: item.data.author.trim() } }
+		: {}),
+	...(ogImageAbs ? { image: [ogImageAbs] } : {}),
+};
+
+// Si la nota es un evento con fechas/lugar (schema prensa: eventDates,
+// location), se emite además un JSON-LD Event. Las fechas están en texto
+// libre español ("26 de noviembre al 5 de enero"); se extraen día y mes y
+// el año se deduce de la fecha de publicación, sin inventar datos.
+const MESES: Record<string, number> = {
+	enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+	julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+};
+const parseEventDates = (text: string, pub: Date) => {
+	const found = [...text.toLowerCase().matchAll(/(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/g)]
+		.map((m) => ({ day: parseInt(m[1], 10), month: MESES[m[2]] }));
+	if (!found.length) return null;
+	const toDate = (d: { day: number; month: number }, ref: Date) => {
+		let year = ref.getFullYear();
+		let dt = new Date(year, d.month, d.day);
+		// Si la fecha quedara muy atrás respecto a la publicación (p. ej.
+		// publicado en noviembre y el evento es "en enero"), es del año siguiente.
+		if (dt.getTime() < ref.getTime() - 90 * 24 * 60 * 60 * 1000) {
+			dt = new Date(year + 1, d.month, d.day);
+		}
+		return dt;
+	};
+	const fmt = (dt: Date) =>
+		`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+	const start = toDate(found[0], pub);
+	let end: Date | null = null;
+	if (found.length > 1) {
+		end = toDate(found[1], pub);
+		if (end < start) end = new Date(end.getFullYear() + 1, end.getMonth(), end.getDate());
+		if (end.getTime() === start.getTime()) end = null;
+	}
+	return { startDate: fmt(start), ...(end ? { endDate: fmt(end) } : {}) };
+};
+const eventDates =
+	!isBook && item.data.eventDates ? parseEventDates(item.data.eventDates, item.data.date) : null;
+const jsonLdEvent = eventDates
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'Event',
+			name: item.data.title,
+			...eventDates,
+			eventStatus: 'https://schema.org/EventScheduled',
+			description: item.data.summary || item.data.title,
+			url: shareUrl,
+			...(item.data.location
+				? { location: { '@type': 'Place', name: item.data.location.trim() } }
+				: {}),
+			...(item.data.author
+				? { organizer: { '@type': 'Organization', name: item.data.author.trim() } }
+				: {}),
+			...(ogImageAbs ? { image: [ogImageAbs] } : {}),
+		}
+	: null;
+const jsonLdBlocks = jsonLdEvent ? [jsonLdNews, jsonLdEvent] : [jsonLdNews];
 ---
 
 <!doctype html>
@@ -75,8 +171,13 @@ const storyCard = item.data.heroImage ? buildStoryCard(item.data.heroImage, item
 		<BaseHead
 			title={`${item.data.title} · Novedades · ${SITE_TITLE}`}
 			description={item.data.summary || item.data.title}
-			image={item.data.heroImage}
+			ogImage={ogImageAbs}
+			type="article"
+			publishedTime={item.data.date.toISOString()}
+			authorName={item.data.author}
+			section={item.data.type}
 		/>
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLdBlocks)} />
 	</head>
 	<body>
 		<Header />

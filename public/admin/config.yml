@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: pepsend/revista-literaria
+  repo: pepsenddigital/revista-literaria
   branch: main
 
 media_folder: "public/uploads"
@@ -8,12 +8,7 @@ public_folder: "/uploads"
 
 # Biblioteca de medios: se usa la del repositorio (public/uploads), la misma
 # que ya tienen las fotos de las notas. La ventana de autorización de Cloudinary
-# quedó bloqueada y no dejaba avanzar; para reactivarla, descomentar este bloque.
-# media_library:
-#   name: cloudinary
-#   config:
-#     cloud_name: cs8tnt88
-#     api_key: "319363133828178"
+# quedó bloqueada y no dejaba avanzar.
 
 collections:
   - name: "posts"

@@ -76,11 +76,30 @@ const categories = CATEGORIES.map(
 		if (dropdown) {
 			var db = dropdown.querySelector('.dropbtn');
 			if (db) {
+				var setDropdown = function (open) {
+					dropdown.classList.toggle('open', open);
+					db.setAttribute('aria-expanded', open ? 'true' : 'false');
+				};
+				// Clic: alterna el desplegable en todos los anchos (antes solo
+				// funcionaba en móvil y el escritorio dependía solo de :hover).
 				db.addEventListener('click', function (e) {
-					if (window.innerWidth <= 760) {
-						e.preventDefault();
-						var isOpen = dropdown.classList.toggle('open');
-						db.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+					e.preventDefault();
+					setDropdown(!dropdown.classList.contains('open'));
+				});
+				// Cerrar con Escape y devolver el foco al botón.
+				document.addEventListener('keydown', function (e) {
+					if (e.key === 'Escape' && dropdown.classList.contains('open')) {
+						setDropdown(false);
+						db.focus();
+					}
+				});
+				// Cerrar al hacer clic fuera del desplegable.
+				document.addEventListener('click', function (e) {
+					if (
+						dropdown.classList.contains('open') &&
+						!dropdown.contains(e.target)
+					) {
+						setDropdown(false);
 					}
 				});
 			}
@@ -300,6 +319,13 @@ const categories = CATEGORIES.map(
 	.dropdown:hover .dropdown-content {
 		display: block;
 	}
+	/* Acceso por teclado y por clic (clase .open desde el script). */
+	.dropdown:focus-within .dropdown-content {
+		display: block;
+	}
+	.dropdown.open .dropdown-content {
+		display: block;
+	}
 	.dropdown-content a {
 		display: block;
 		text-decoration: none;
@@ -410,6 +436,10 @@ const categories = CATEGORIES.map(
 			background: transparent;
 		}
 		.dropdown:hover .dropdown-content {
+			display: none;
+		}
+		/* En móvil manda el estado .open (grid); hover/focus no lo abren. */
+		.dropdown:focus-within .dropdown-content {
 			display: none;
 		}
 		.dropdown.open .dropdown-content {

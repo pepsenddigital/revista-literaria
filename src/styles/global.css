@@ -60,6 +60,14 @@ a {
 	color: inherit;
 }
 
+/* Foco visible global para navegación con teclado (WCAG 2.4.7).
+   --link deriva del color de acento del tema y cumple contraste en
+   ambos temas (papel y Terminal); el offset separa el contorno del texto. */
+:focus-visible {
+	outline: 2px solid var(--link);
+	outline-offset: 2px;
+}
+
 p {
 	margin-top: 0;
 	margin-bottom: 1em;

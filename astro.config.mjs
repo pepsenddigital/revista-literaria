@@ -60,5 +60,18 @@ export default defineConfig({
 		remarkPlugins: [remarkTidyProse],
 	},
 	site: 'https://abuliaterminal.cl',
-	integrations: [mdx(), sitemap()],
+	integrations: [
+		mdx(),
+		sitemap({
+			// Fuera del sitemap: la confirmación post-envío (/gracias/) y las
+			// rutas que ahora solo redirigen (/about/ y el índice /blog/).
+			// La comparación es exacta: los artículos /blog/<slug>/ quedan dentro.
+			filter: (page) =>
+				![
+					'https://abuliaterminal.cl/gracias/',
+					'https://abuliaterminal.cl/about/',
+					'https://abuliaterminal.cl/blog/',
+				].includes(page),
+		}),
+	],
 });

@@ -5,8 +5,14 @@
 	--ink: #1b1916;
 	--pink: #e5468a;
 	--pink-drip: #f0509a;
+	/* Enlace de texto sobre papel: derivado del rosa, oscurecido para cumplir
+	   WCAG AA (4,85:1 sobre --paper). El rosa puro queda para titulares,
+	   kickers y decoración. Solo se usa en enlaces de la prosa. */
+	--link: #bc1a60;
 	--orange: #dd4b12;
-	--muted: #8c7f6e;
+	/* Oscurecido desde #8c7f6e (3,11:1) para cumplir WCAG AA sobre --paper:
+	   #6b6154 da 4,84:1. El modo Terminal redefine el suyo más abajo. */
+	--muted: #6b6154;
 	--line: #cfc4ae;
 	/* Modo terminal (fondo negro) */
 	--negro: #131211;
@@ -25,6 +31,9 @@
 	--paper: #14110f;
 	--paper-2: #1d1a16;
 	--ink: #ebd8c6;
+	/* En Terminal el rosa puro sí cumple sobre el fondo oscuro (4,99:1):
+	   los enlaces conservan el color que ya tenían. */
+	--link: #e5468a;
 	--muted: #9a8f7e;
 	--line: #39332c;
 	--text: #ece0d0;
